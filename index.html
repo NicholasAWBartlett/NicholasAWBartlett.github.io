@@ -112,8 +112,8 @@
         <button onclick="updateChannel()">Update Channel</button>
         
         <div class="checkbox-label">
-            <input type="checkbox" id="low-quality-checkbox" checked>
-            <label for="low-quality-checkbox">Low Resolution</label>
+            <input type="checkbox" id="quality-checkbox" checked>
+            <label for="quality-checkbox">Low Resolution</label>
         </div>
     </div>
 
@@ -126,6 +126,46 @@
     <!-- JavaScript functions for the Twitch embed -->
     <script>
         var embed; // Global variable to hold the Twitch.Embed instance
+        var qualityCheckBox = document.getElementById("quality-checkbox");
+
+        function adjustQuality(player, qualityCheckBox) {
+            // Retrieve the list of available qualities
+            const availableQualities = player.getQualities();
+
+            // Initialize a variable to hold the lowest quality
+            let lowestQuality = null;
+            if (qualityCheckBox.checked) {
+                // Loop through the available qualities
+                availableQualities.forEach(function (quality) {
+                    // Use a regular expression to check if the quality name contains only digits and ends with 'p'
+                    const qualityNameMatch = quality.name.match(/^(\d+)p$/);
+
+                    // If the quality name is a digit-based string (e.g., '160p', '480p')
+                    if (qualityNameMatch) {
+                        const qualityValue = parseInt(qualityNameMatch[1], 10); // Parse the quality value as an integer
+
+                        // If there is no lowest quality set yet, or the current quality is lower than the current lowest
+                        if (lowestQuality === null || qualityValue < lowestQuality.value) {
+                            // Set this quality as the new lowest quality
+                            lowestQuality = { name: quality.name, value: qualityValue };
+                        }
+                    }
+                });
+
+                // If we found a valid lowest quality, set the video quality to that value
+                if (lowestQuality && player.getQuality()) {
+                    if (!player.getQuality().toLowerCase().includes(lowestQuality.name.toLowerCase())) {
+                        console.log(`Updating quality: ${lowestQuality.name} `);
+                        player.setQuality(lowestQuality.name);
+                    }
+                }
+            } else {
+                if (player.getQuality().toLowerCase() !== 'auto') {
+                    console.log('Updating quality: auto');
+                    player.setQuality('auto');
+                }
+            }
+        }
 
         // Function to initialize the Twitch embed with the specified channel
         function initializeTwitchEmbed(channelName) {
@@ -137,50 +177,9 @@
                 parent: ["nicholasawbartlett.github.io"]
             });
 
-            low_quality = document.getElementById("low-quality-checkbox")
-
-
             embed.addEventListener(Twitch.Embed.PLAYING, function() {
-                // Get the player instance from the embed
-                player = embed.getPlayer();
-
-                // Retrieve the list of available qualities/quality checkbox value
-                const availableQualities = player.getQualities();
-                const qualityCheckBox = document.getElementById("low-quality-checkbox");
-
-                // Initialize a variable to hold the lowest quality
-                let quality = null;
-                
-                if (qualityCheckBox.checked) {
-                    // Loop through the available qualities
-                    availableQualities.forEach(function (quality) {
-                        
-                        // Use a regular expression to check if the quality name contains only digits and ends with 'p'
-                        const qualityNameMatch = quality.name.match(/^(\d+)p$/);
-                        
-                        // If the quality name is a digit-based string (e.g., '160p', '480p')
-                        if (qualityNameMatch) {
-                            const qualityValue = parseInt(qualityNameMatch[1], 10); // Parse the quality value as an integer
-                            
-                            // If there is no lowest quality set yet, or the current quality is lower than the current lowest
-                            if (quality === null || qualityValue < quality.value) {
-                                // Set this quality as the new lowest quality
-                                quality = { name: quality.name, value: qualityValue };
-                            }
-                        }
-                    });
-
-                    // If we found a valid lowest quality, set the video quality to that value
-                    if (quality && player.getQuality()) {
-                        if (!player.getQuality().toLowerCase().includes(quality.name.toLowerCase())) {
-                            player.setQuality(quality.name);
-                        }
-                    }
-                } else {
-                    if (player.getQuality().toLowerCase() != 'auto') {
-                            player.setQuality('Auto');
-                    }
-                }
+                // Update stream quality on stream initialization
+                adjustQuality(embed.getPlayer(), qualityCheckBox)
             });
         }
 
@@ -204,11 +203,14 @@
             sidebar.classList.toggle("collapsed");
         }
 
-        // Add click event listener to the toggle button
+        // Add click event listener to the toggle/quality interfaces
         document.getElementById("toggle-button").addEventListener("click", toggleSidebar);
+        document.getElementById("quality-checkbox").addEventListener('change', function() {
+            adjustQuality(embed.getPlayer(), qualityCheckBox);
+        });
 
         // Initialize the Twitch embed with a default channel on page load
-        initializeTwitchEmbed("total_gaming_hun");
+        initializeTwitchEmbed("stackaiot");
     </script>
 </body>
 
