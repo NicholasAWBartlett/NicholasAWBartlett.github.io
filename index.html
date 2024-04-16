@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Twitch Embed</title>
+    <!-- Load the Twitch embed JavaScript file -->
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+    <style>
+        /* CSS styles for the layout */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            width: 250px;
+            background-color: #f0f0f0;
+            padding: 10px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            height: 100vh; /* Full height of viewport */
+        }
+
+        /* Collapsed state for the sidebar */
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        /* Main content styles */
+        .content {
+            flex-grow: 1;
+            padding: 10px;
+            height: 100vh; /* Full height of viewport */
+            overflow: hidden;
+        }
+
+        /* Toggle button styles */
+        #toggle-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 100px;
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: grey;
+            color: white;
+            opacity: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Rotate the arrow for the collapsed state */
+        #toggle-button span {
+            display: block;
+            transform: rotate(0deg);
+            transition: transform 0.3s ease;
+        }
+
+        .collapsed #toggle-button span {
+            transform: rotate(180deg);
+        }
+
+        /* Input and button styles */
+        input,
+        button {
+            display: block;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        /* Adjust the Twitch embed to 100% height */
+        #twitch-embed {
+            width: 90%;
+            height: 90%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar with channel input and button -->
+    <div class="sidebar" id="sidebar">
+        <!-- Toggle button with arrow graphic -->
+        <div id="toggle-button">
+            <span>→</span>
+        </div>
+        <input type="text" id="channel-input" placeholder="Enter channel name">
+        <button onclick="updateChannel()">Update Channel</button>
+    </div>
+
+    <!-- Main content area -->
+    <div class="content">
+        <!-- Placeholder for the Twitch embed -->
+        <div id="twitch-embed"></div>
+    </div>
+
+    <!-- JavaScript functions for the Twitch embed -->
+    <script>
+        var embed; // Global variable to hold the Twitch.Embed instance
+
+        // Function to initialize the Twitch embed with the specified channel
+        function initializeTwitchEmbed(channelName) {
+            // Create a new Twitch.Embed object
+            embed = new Twitch.Embed("twitch-embed", {
+                width: "90%",
+                height: "90%",
+                channel: channelName,
+                parent: ["embed.example.com", "othersite.example.com"]
+            });
+
+            embed.addEventListener(Twitch.Embed.PLAYING, function() {
+                // Get the player instance from the embed
+                player = embed.getPlayer();
+
+                // Retrieve the list of available qualities
+                const availableQualities = player.getQualities();
+
+                // Initialize a variable to hold the lowest quality
+                let lowestQuality = null;
+                
+                // Loop through the available qualities
+                availableQualities.forEach(function (quality) {
+
+                    // Use a regular expression to check if the quality name contains only digits and ends with 'p'
+                    const qualityNameMatch = quality.name.match(/^(\d+)p$/);
+                    
+                    // If the quality name is a digit-based string (e.g., '160p', '480p')
+                    if (qualityNameMatch) {
+                        const qualityValue = parseInt(qualityNameMatch[1], 10); // Parse the quality value as an integer
+                        
+                        // If there is no lowest quality set yet, or the current quality is lower than the current lowest
+                        if (lowestQuality === null || qualityValue < lowestQuality.value) {
+                            // Set this quality as the new lowest quality
+                            lowestQuality = { name: quality.name, value: qualityValue };
+                        }
+                    }
+                });
+
+                // If we found a valid lowest quality, set the video quality to that value
+                if (lowestQuality && player.getQuality()) {
+                    if (!player.getQuality().toLowerCase().includes(lowestQuality.name.toLowerCase())) {
+                        player.setQuality(lowestQuality.name);
+                    }
+                }
+            });
+        }
+
+        // Function to update the channel in the Twitch embed
+        function updateChannel() {
+            // Get the channel name from the input textbox
+            var channelName = document.getElementById("channel-input").value;
+
+            // Clear the current embed if it exists
+            if (embed) {
+                document.getElementById("twitch-embed").innerHTML = ''; // Clear the embed
+            }
+
+            // Initialize a new Twitch embed with the specified channel name
+            initializeTwitchEmbed(channelName);
+        }
+
+        // Initialize the Twitch embed with a default channel on page load
+        initializeTwitchEmbed("rutman8");
+
+        // Function to toggle sidebar visibility
+        function toggleSidebar() {
+            var sidebar = document.getElementById("sidebar");
+            sidebar.classList.toggle("collapsed");
+        }
+
+        // Add click event listener to the toggle button
+        document.getElementById("toggle-button").addEventListener("click", toggleSidebar);
+    </script>
+</body>
+
+</html>
