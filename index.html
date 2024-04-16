@@ -166,9 +166,6 @@
             initializeTwitchEmbed(channelName);
         }
 
-        // Initialize the Twitch embed with a default channel on page load
-        initializeTwitchEmbed("itzmikie97");
-
         // Function to toggle sidebar visibility
         function toggleSidebar() {
             var sidebar = document.getElementById("sidebar");
@@ -177,6 +174,9 @@
 
         // Add click event listener to the toggle button
         document.getElementById("toggle-button").addEventListener("click", toggleSidebar);
+        
+        // Initialize the Twitch embed with a default channel on page load
+        initializeTwitchEmbed("total_gaming_hun");
     </script>
 </body>
 
