@@ -81,6 +81,23 @@
             width: 90%;
             height: 90%;
         }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center; /* Center vertically */
+            white-space: nowrap; /* Prevent content from wrapping */
+            /* Optional: Adjust width as necessary */
+            width: 100%; /* Adjust to the full width of the parent, if desired */
+            margin-bottom: 10px; /* Space between different checkbox-label groups */
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 10px; /* Space between checkbox and label */
+            margin-top: 10px;
+            align-items: right;
+            width: 10%;
+        }
+    
     </style>
 </head>
 
@@ -93,6 +110,11 @@
         </div>
         <input type="text" id="channel-input" placeholder="Enter channel name">
         <button onclick="updateChannel()">Update Channel</button>
+        
+        <div class="checkbox-label">
+            <input type="checkbox" id="low-quality-checkbox" checked>
+            <label for="low-quality-checkbox">Low Resolution</label>
+        </div>
     </div>
 
     <!-- Main content area -->
@@ -115,38 +137,48 @@
                 parent: ["nicholasawbartlett.github.io"]
             });
 
+            low_quality = document.getElementById("low-quality-checkbox")
+
+
             embed.addEventListener(Twitch.Embed.PLAYING, function() {
                 // Get the player instance from the embed
                 player = embed.getPlayer();
 
-                // Retrieve the list of available qualities
+                // Retrieve the list of available qualities/quality checkbox value
                 const availableQualities = player.getQualities();
+                const qualityCheckBox = document.getElementById("low-quality-checkbox");
 
                 // Initialize a variable to hold the lowest quality
-                let lowestQuality = null;
+                let quality = null;
                 
-                // Loop through the available qualities
-                availableQualities.forEach(function (quality) {
-
-                    // Use a regular expression to check if the quality name contains only digits and ends with 'p'
-                    const qualityNameMatch = quality.name.match(/^(\d+)p$/);
-                    
-                    // If the quality name is a digit-based string (e.g., '160p', '480p')
-                    if (qualityNameMatch) {
-                        const qualityValue = parseInt(qualityNameMatch[1], 10); // Parse the quality value as an integer
+                if (qualityCheckBox.checked) {
+                    // Loop through the available qualities
+                    availableQualities.forEach(function (quality) {
                         
-                        // If there is no lowest quality set yet, or the current quality is lower than the current lowest
-                        if (lowestQuality === null || qualityValue < lowestQuality.value) {
-                            // Set this quality as the new lowest quality
-                            lowestQuality = { name: quality.name, value: qualityValue };
+                        // Use a regular expression to check if the quality name contains only digits and ends with 'p'
+                        const qualityNameMatch = quality.name.match(/^(\d+)p$/);
+                        
+                        // If the quality name is a digit-based string (e.g., '160p', '480p')
+                        if (qualityNameMatch) {
+                            const qualityValue = parseInt(qualityNameMatch[1], 10); // Parse the quality value as an integer
+                            
+                            // If there is no lowest quality set yet, or the current quality is lower than the current lowest
+                            if (quality === null || qualityValue < quality.value) {
+                                // Set this quality as the new lowest quality
+                                quality = { name: quality.name, value: qualityValue };
+                            }
+                        }
+                    });
+
+                    // If we found a valid lowest quality, set the video quality to that value
+                    if (lowestQuality && player.getQuality()) {
+                        if (!player.getQuality().toLowerCase().includes(lowestQuality.name.toLowerCase())) {
+                            player.setQuality(lowestQuality.name);
                         }
                     }
-                });
-
-                // If we found a valid lowest quality, set the video quality to that value
-                if (lowestQuality && player.getQuality()) {
-                    if (!player.getQuality().toLowerCase().includes(lowestQuality.name.toLowerCase())) {
-                        player.setQuality(lowestQuality.name);
+                } else {
+                    if (player.getQuality().toLowerCase() != 'auto') {
+                            player.setQuality('Auto');
                     }
                 }
             });
@@ -174,7 +206,7 @@
 
         // Add click event listener to the toggle button
         document.getElementById("toggle-button").addEventListener("click", toggleSidebar);
-        
+
         // Initialize the Twitch embed with a default channel on page load
         initializeTwitchEmbed("total_gaming_hun");
     </script>
