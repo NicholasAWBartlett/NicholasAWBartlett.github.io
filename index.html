@@ -171,9 +171,9 @@
                     });
 
                     // If we found a valid lowest quality, set the video quality to that value
-                    if (lowestQuality && player.getQuality()) {
-                        if (!player.getQuality().toLowerCase().includes(lowestQuality.name.toLowerCase())) {
-                            player.setQuality(lowestQuality.name);
+                    if (quality && player.getQuality()) {
+                        if (!player.getQuality().toLowerCase().includes(quality.name.toLowerCase())) {
+                            player.setQuality(quality.name);
                         }
                     }
                 } else {
