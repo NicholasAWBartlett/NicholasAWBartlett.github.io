@@ -179,18 +179,6 @@
                 parent: ["nicholasawbartlett.github.io"]
             });
 
-            embed.addEventListener(Twitch.Embed.VIDEO_READY, () => {
-                const player = embed.getPlayer();
-                player.setMuted(true);
-
-                // Small delay to ensure Twitch internal player is ready
-                setTimeout(() => {
-                    player.play().catch(err => {
-                        console.log("Autoplay failed, retrying...", err);
-                    });
-                }, 500); // 0.5 second delay
-            });
-
             embed.addEventListener(Twitch.Embed.PLAYING, function() {
                 // Update stream quality on stream initialization
                 adjustQuality(embed.getPlayer(), qualityCheckBox)
