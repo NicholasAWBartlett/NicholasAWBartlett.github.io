@@ -181,9 +181,14 @@
 
             embed.addEventListener(Twitch.Embed.VIDEO_READY, () => {
                 const player = embed.getPlayer();
-                player.setMuted(true);   // allows autoplay
-                player.play();           // force playback
-                adjustQuality(player, qualityCheckBox);
+                player.setMuted(true);
+
+                // Small delay to ensure Twitch internal player is ready
+                setTimeout(() => {
+                    player.play().catch(err => {
+                        console.log("Autoplay failed, retrying...", err);
+                    });
+                }, 500); // 0.5 second delay
             });
 
             embed.addEventListener(Twitch.Embed.PLAYING, function() {
