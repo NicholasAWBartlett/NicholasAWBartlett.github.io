@@ -179,6 +179,13 @@
                 parent: ["nicholasawbartlett.github.io"]
             });
 
+            embed.addEventListener(Twitch.Embed.VIDEO_READY, () => {
+                const player = embed.getPlayer();
+                player.setMuted(true);   // allows autoplay
+                player.play();           // force playback
+                adjustQuality(player, qualityCheckBox);
+            });
+
             embed.addEventListener(Twitch.Embed.PLAYING, function() {
                 // Update stream quality on stream initialization
                 adjustQuality(embed.getPlayer(), qualityCheckBox)
